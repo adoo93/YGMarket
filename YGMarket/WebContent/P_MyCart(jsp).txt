@@ -1,0 +1,76 @@
+<%@page import="com.yg.dao.ProductDao"%>
+<%@page import="com.yg.dao.MemberDao"%>
+<%@page import="com.yg.dto.ProductBean"%>
+<%@page import="com.yg.dto.OrderBean"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="com.yg.dao.OrderDao"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style>
+	img {
+		width:105px;
+	}
+	div {
+		text-align:center;
+	}
+	input {
+		width:20px;
+	}
+	table {
+		width:900px;
+	}
+</style>
+</head>
+<body>
+<jsp:include page="template/header.jsp"></jsp:include>
+
+<%	OrderDao oDao = OrderDao.getInstance();
+	MemberDao mDao = MemberDao.getInstance(); 
+	ProductDao pDao = ProductDao.getInstance();
+	
+	String loginId = (String)session.getAttribute("login_id");
+	int member_id = mDao.getMemberIdFromId(loginId);
+	%>	<div class="first">
+		<h1><%=loginId %>님의 장바구니</h1>
+		
+		<table style="margin: auto; border: 1px solid black;">
+		<tr>
+			<th colspan="2">상품정보</th>
+			<th>수량</th>
+			<th>상품금액</th>
+			<th>수정 / 삭제</th>
+		</tr>
+	
+	<%
+
+	ArrayList<OrderBean> list1 = oDao.getOrderListFromMemberId(member_id);
+		for(OrderBean bean : list1) {
+			ProductBean bean2 = pDao.selectProduct(bean.getCode());
+%>			
+		<tr>
+			<td><img src="<%=bean2.getImage() %>"></td>
+			<td><%=bean2.getName() %></td>
+			<form action="Controller?command=order_update" method="post">
+			<td><input type="text" name="newqty" value="<%=bean.getQty() %>"></td>
+			<%int totalprice = (bean.getQty())*(bean2.getPrice()); %>
+			<td><%=totalprice %></td>
+			<td><input type="submit" value="수정"><br/>
+		<!-- 	<input type="button" onclick="location.href='Controller?command=order_delete&ordernum=<%=bean.getOrdernum() %>'" value="삭제"></td>	 -->
+		</tr>
+ 		<input type="hidden" name="code" value="<%=bean2.getCode()%>">
+		<input type="hidden" name="member_id" value="<%=(String)session.getAttribute("login_id") %>">	</form>
+<%			
+		}
+ %>
+ 		<h3 style="text-align:right">총가격 : </h3>
+		</table>
+		</div>
+		
+<jsp:include page="template/footer.jsp"></jsp:include>
+</body>
+</html>
